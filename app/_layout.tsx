@@ -1,11 +1,13 @@
-import { Stack } from 'expo-router'
+import { Stack } from "expo-router";
 
-import '../global.css'
-import { ClerkProvider } from '@clerk/clerk-expo'
+import "../global.css";
+import { ClerkProvider } from "@clerk/clerk-expo";
 
-export default () => {
+export default function RootLayout() {
   return (
-    <ClerkProvider publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider
+      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    >
       <Stack>
         <Stack.Screen
           name="(protected)"
@@ -15,5 +17,5 @@ export default () => {
         />
       </Stack>
     </ClerkProvider>
-  )
+  );
 }

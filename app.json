@@ -17,14 +17,20 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "net.chanakancloud.ingredientscanner"
+      "bundleIdentifier": "net.chanakancloud.ingredientscanner",
+      "infoPlist": {
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to camera for scanning ingredients"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "net.chanakancloud.ingredientscanner"
+      "package": "net.chanakancloud.ingredientscanner",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,15 +40,18 @@
       [
         "react-native-vision-camera",
         {
-          "cameraPermissionText": "$(PRODUCT_NAME) needs access to camera for scanning ingredients"
-        }
-      ],
-      [
-        "react-native-fast-tflite",
-        {
-          "enableCoreMLDelegate": true
+          "cameraPermissionText": "$(PRODUCT_NAME) needs access to camera for scanning ingredients",
+          "disableFrameProcessors": true
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "b4ee2c9b-3cdc-4f84-a414-dcc50016409f"
+      }
+    }
   }
 }

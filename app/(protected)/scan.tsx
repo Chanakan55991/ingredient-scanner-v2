@@ -1,50 +1,64 @@
 import { Canvas, Circle } from "@shopify/react-native-skia";
+import { Platform } from "expo-modules-core";
 import { StyleSheet } from "nativewind";
-import { useTensorflowModel } from "react-native-fast-tflite";
-import { useSharedValue } from "react-native-reanimated";
+import * as fs from "expo-file-system";
+import { Buffer } from "react-native-buffer";
 import {
   Camera,
   useCameraDevice,
   useCameraPermission,
-  useFrameProcessor,
 } from "react-native-vision-camera";
-import { useResizePlugin } from "vision-camera-resize-plugin";
+import { TouchableOpacity, View } from "react-native";
+import { useRef } from "react";
+import axios from "axios";
+import { ingredients } from "../state/state";
+import { useSetAtom } from "jotai";
+import { router } from "expo-router";
 
 export default () => {
   const { hasPermission, requestPermission } = useCameraPermission();
+  const camera = useRef<Camera>(null);
+  const setIngredients = useSetAtom(ingredients);
+
+  const fontFamily = Platform.select({ ios: "Helvetica", default: "serif" });
+  const fontStyle = {
+    fontFamily,
+    fontSize: 14,
+    fontStyle: "italic",
+    fontWeight: "bold",
+  };
 
   if (!hasPermission) requestPermission();
 
-  const objectDetection = useTensorflowModel(
-    require("../../assets/model_unquant.tflite"),
-  );
-  const model =
-    objectDetection.state === "loaded" ? objectDetection.model : null;
-
-  const { resize } = useResizePlugin();
-
-  const frameProcessor = useFrameProcessor(
-    (frame) => {
-      "worklet";
-      if (model == null) return;
-
-      const data = resize(frame, {
-        scale: { width: 320, height: 320 },
-        pixelFormat: "rgb",
-        dataType: "float32",
-      });
-
-      const input = new Uint8Array(data);
-      const outputs = model.runSync([input]);
-
-      const detected_objects = outputs[0];
-      console.log(detected_objects);
-    },
-    [model],
-  );
-
   const device = useCameraDevice("back");
   if (device == null) return;
+
+  const takePhoto = async () => {
+    const image = await camera.current?.takePhoto();
+    if (!image) return;
+    const formData = new FormData();
+    const file = await fs.readAsStringAsync("file://" + image.path, {
+      encoding: fs.EncodingType.Base64,
+    });
+
+    try {
+      const result = await axios.post("https://ctsbe.chanakancloud.net/scan", {
+        file: file,
+      });
+      const ingredient = result.data.ingredient_name;
+      setIngredients((exingredients) => {
+        return Array.from(
+          new Set([
+            ...exingredients,
+            ingredient.toLowerCase().replaceAll("\n", ""),
+          ]),
+        );
+      });
+      router.push("/scanned");
+    } catch (ex) {
+      console.log(ex);
+    }
+  };
 
   return (
     <>
@@ -52,12 +66,15 @@ export default () => {
         style={StyleSheet.absoluteFill}
         device={device}
         isActive={true}
-        pixelFormat="yuv"
-        frameProcessor={frameProcessor}
+        photo={true}
+        ref={camera}
       />
-      <Canvas style={{ width: 256, height: 256 }}>
-        <Circle cx={50} cy={50} r={50} color="blue" />
-      </Canvas>
+      <TouchableOpacity
+        className="absolute bottom-4 items-center justify-center self-center rounded-full border-2 border-solid border-white p-1"
+        onPress={takePhoto}
+      >
+        <View className="rounded-full border-2 border-solid border-white bg-white p-8"></View>
+      </TouchableOpacity>
     </>
   );
 };

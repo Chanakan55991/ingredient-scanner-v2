@@ -1,70 +1,114 @@
-import { SignedIn, useAuth } from "@clerk/clerk-expo"
-import { Image } from "expo-image"
-import { router, useRootNavigationState, useSegments } from "expo-router"
-import { Search } from "lucide-react-native"
-import { useEffect } from "react"
-import { Button, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { SignedIn, useAuth, useUser } from "@clerk/clerk-expo";
+import { Image } from "expo-image";
+import { router, useRootNavigationState, useSegments } from "expo-router";
+import { Search } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import {
+  Button,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import DB from "../utils/db";
+import { Link } from "@react-navigation/native";
 
-export default function App() {
-  const { isSignedIn, isLoaded, signOut } = useAuth()
-  const navigationState = useRootNavigationState()
+export default function Home() {
+  const { signOut } = useAuth();
+  const { user } = useUser();
+  const [menus, setMenus] = useState([]);
+  let db: DB;
 
   useEffect(() => {
-    if (!isSignedIn) {
-      if (!navigationState) return
-      if (!navigationState.key) return
+    if (!user) return;
+    db = new DB(user.id, user.unsafeMetadata.encryptionKey as string);
+    fetchMenus();
+  }, [user]);
 
-      router.replace('/login')
+  const fetchMenus = () => {
+    try {
+      const { rows } = db.execute("SELECT * FROM all_menus");
+      if (rows) setMenus(rows._array);
+    } catch (e) {
+      db.init();
+      fetchMenus();
     }
-  }, [isLoaded, useRootNavigationState])
+  };
 
   return (
     <SignedIn>
-      <View className='flex items-center pt-14'>
-        <Text className='text-2xl'>Search</Text>
-        <View className='flex flex-row items-center mt-2'>
-          <TextInput className='w-[80vw] px-4 py-1 rounded-full border-gray-300 border-2 border-solid' placeholder='Search'></TextInput>
-          <TouchableOpacity className='absolute right-4'>
-            <Search className='text-gray-600 text-opacity-65' />
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View className='flex h-[80%] items-center mt-14 gap-6'>
-        {/* BLOCK EXAMPLE */}
+      <SafeAreaView>
+        <View className="flex items-center justify-center p-4">
+          <View className="relative flex flex-row items-center">
+            <TouchableOpacity className="absolute left-2 z-10">
+              <Search className="text-opacity-65" color="gray" />
+            </TouchableOpacity>
 
-        <View className='w-[80%] h-[8rem] flex flex-row'>
-          <Image source='https://picsum.photos/seed/696/300/200' style={{
-            width: 128
-          }} />
-          <View className='pl-4 text-wrap'>
-            <Text className='font-semibold text-xl'>Fried Fish</Text>
-            <Text className='w-[11rem] text-sm'>very cool, and awesome lol. This text so big it overflow, should wrap to new line doe</Text>
+            <TextInput
+              className="w-full rounded-xl bg-orange-200 px-10 py-2"
+              placeholder="Search"
+              returnKeyType="search"
+            ></TextInput>
           </View>
         </View>
 
-        <View className='w-[80%] h-[8rem] flex flex-row'>
-          <Image source='https://picsum.photos/seed/696/300/200' style={{
-            width: 128
-          }} />
-          <View className='pl-4 '>
-            <Text className='font-semibold text-xl'>Fish Fried</Text>
-            <Text className='w-[11rem] text-sm'>amen break</Text>
-          </View>
+        <View className="relative m-4 mt-0 flex h-48 items-center justify-between rounded-2xl bg-yellow-500 ">
+          <Image
+            source="https://i2.wp.com/seonkyounglongest.com/wp-content/uploads/2021/03/Tom-Yum-07-mini.jpg?fit=1000%2C667&ssl=1"
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 16,
+            }}
+            className="absolute"
+          />
+          <Text className="absolute bottom-0 self-start p-4 text-3xl text-white">
+            Hello, {user?.firstName}
+          </Text>
         </View>
+        <ScrollView
+          className="mt-2 flex h-[80%]"
+          contentContainerStyle={{
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          {/* BLOCK EXAMPLE */}
 
-        <View className='w-[80%] h-[8rem] flex flex-row'>
-          <Image source='https://picsum.photos/seed/696/300/200' style={{
-            width: 128
-          }} />
-          <View className='pl-4 '>
-            <Text className='font-semibold text-xl'>Friend Fried</Text>
-            <Text className='w-[11rem] text-sm'>blap blap blap blap blap blap blap blap</Text>
-          </View>
-        </View>
+          {menus.map((menu) => (
+            <Link to={`/menu/${menu.id}`} key={menu.id} className="w-[90%]">
+              <View className="flex h-[8rem] w-[90%] flex-row overflow-hidden overflow-ellipsis">
+                <Image
+                  source={menu.thumb_url}
+                  style={{
+                    width: 128,
+                    borderRadius: 16,
+                  }}
+                />
+                <View className="overflow-hidden overflow-ellipsis text-wrap pl-4">
+                  <Text
+                    className="w-[90%] overflow-hidden overflow-ellipsis text-xl font-semibold"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {menu.menu_name}
+                  </Text>
+                  <Text
+                    className="w-[11rem] overflow-hidden overflow-ellipsis text-sm"
+                    numberOfLines={5}
+                  >
+                    {menu.receipe}
+                  </Text>
+                </View>
+              </View>
+            </Link>
+          ))}
 
-
-        <Button onPress={() => signOut()} title="logout" className='p-4 bg-orange-300' />
-      </View>
+          {/* BLOCK END */}
+        </ScrollView>
+      </SafeAreaView>
     </SignedIn>
-  )
+  );
 }

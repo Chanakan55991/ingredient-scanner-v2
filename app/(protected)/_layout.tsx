@@ -1,33 +1,30 @@
-import { useAuth } from "@clerk/clerk-expo"
-import { Slot, router, useRootNavigationState } from "expo-router"
-import Tabs from "expo-router/tabs"
-import { Camera, Home } from "lucide-react-native"
+import { useAuth } from "@clerk/clerk-expo";
+import { Slot, router, useRootNavigationState } from "expo-router";
+import Tabs from "expo-router/tabs";
+import { Camera, History, Home } from "lucide-react-native";
 
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
-import { useEffect } from "react"
-import { Platform, Text, View } from "react-native"
+import { useEffect } from "react";
+import { Platform, Text, View } from "react-native";
 import { BlurView } from "expo-blur";
 
-export default () => {
-
-  const { isSignedIn } = useAuth()
-  const navigationState = useRootNavigationState()
+export default function ProtectedLayout() {
+  const { isSignedIn } = useAuth();
+  const navigationState = useRootNavigationState();
 
   useEffect(() => {
-    if (!navigationState) return
-    if (!navigationState.key) return
-    if (!isSignedIn) router.replace('/login')
-  }, [navigationState])
+    if (!navigationState) return;
+    if (!navigationState.key) return;
+    if (!isSignedIn) router.replace("/login");
+  }, [navigationState]);
 
   return (
     <Tabs
       initialRouteName="home"
       screenOptions={{
-        tabBarStyle:
-          Platform.OS === "ios"
-          && {
-            backgroundColor: "transparent",
-          },
+        tabBarStyle: Platform.OS === "ios" && {
+          backgroundColor: "transparent",
+        },
       }}
       tabBar={(props) =>
         Platform.OS === "ios" ? (
@@ -45,8 +42,8 @@ export default () => {
       <Tabs.Screen
         name="home"
         options={{
-          href: '/home',
-          title: 'Home',
+          href: "/home",
+          title: "Home",
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <View
@@ -57,16 +54,16 @@ export default () => {
                 backgroundColor: "transparent",
               }}
             >
-              <Home color={color} className='mb-2' />
+              <Home color={color} />
             </View>
-          )
+          ),
         }}
       />
       <Tabs.Screen
         name="scan"
         options={{
-          href: '/scan',
-          title: 'Scan',
+          href: "/scan",
+          title: "Scan",
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <View
@@ -77,14 +74,39 @@ export default () => {
                 backgroundColor: "transparent",
               }}
             >
-              <Camera color={color} className='mb-2' />
+              <Camera color={color} />
             </View>
-          )
+          ),
         }}
       />
-
-
+      <Tabs.Screen
+        name="history"
+        options={{
+          href: "/history",
+          title: "History",
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <View
+              style={{
+                flexDirection: "column",
+                alignItems: "center",
+                marginTop: 17,
+                backgroundColor: "transparent",
+              }}
+            >
+              <History color={color} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="menu/[id]"
+        options={{ href: null, title: "Menu Receipe" }}
+      />
+      <Tabs.Screen
+        name="scanned"
+        options={{ href: null, title: "Scanned Ingredients" }}
+      />
     </Tabs>
-  )
-
+  );
 }

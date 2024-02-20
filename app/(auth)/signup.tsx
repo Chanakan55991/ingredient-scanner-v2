@@ -1,21 +1,11 @@
-import { StatusBar } from "expo-status-bar";
-import {
-  Button,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Mail, Lock } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import { router, useRootNavigationState } from "expo-router";
 
-export default function Login() {
+export default function Signup() {
   const { signIn, setActive, isLoaded } = useSignIn();
-  const [timesPressed, setTimesPressed] = useState(0);
   const { isSignedIn } = useAuth();
   const navigationState = useRootNavigationState();
 
@@ -48,26 +38,20 @@ export default function Login() {
   return (
     <View className="flex h-full items-center justify-center">
       <View className="flex flex-col gap-2">
-        <View className="relative flex flex-row items-center">
-          <View className="absolute left-4">
-            <Mail fill="gray" color="#eeeeee" />
-          </View>
+        <View className="flex flex-row items-center">
+          <Mail className="absolute left-4 text-black" />
           <TextInput
             autoCapitalize="none"
             value={emailAddress}
             onChangeText={(email) => setEmail(email)}
             placeholder="Email"
-            className="w-[16rem] rounded-full border-2 border-solid border-orange-300 p-3 pl-14 text-lg text-black"
+            className="w-[16rem] rounded-full border-2 border-solid border-orange-300 p-3 pl-16 text-lg"
           ></TextInput>
         </View>
-
-        <View className="relative mb-2 flex flex-row items-center">
-          <View className="absolute left-4">
-            <Lock fill="gray" color="#eeeeee" />
-          </View>
+        <View className="mb-2 flex flex-row items-center">
+          <Lock className="absolute left-4 text-black" />
           <TextInput
             value={password}
-            returnKeyType="done"
             onChangeText={(pwd) => setPassword(pwd)}
             secureTextEntry={true}
             placeholder="Password"
